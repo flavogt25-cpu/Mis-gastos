@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MisGastos">
+<meta name="theme-color" content="#c9a84c">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>MisGastos</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:#0c0c0f;color:#ede8d8;font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:80px;overscroll-behavior:none;}
+input,select,button{font-family:'DM Sans',sans-serif;}
+.save-banner{position:fixed;top:0;left:0;right:0;background:#1a2e0a;color:#4ecb4e;font-size:12px;font-weight:600;text-align:center;padding:6px;z-index:300;transform:translateY(-100%);transition:transform .3s;}
+.save-banner.show{transform:translateY(0);}
+#offline-badge{display:none;position:fixed;top:6px;right:10px;background:#2a1010;color:#e05a5a;font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;z-index:400;border:1px solid #5a2020;}
+.hdr{background:#111114;border-bottom:1px solid #222;padding:16px 16px 0;position:sticky;top:0;z-index:50;}
+.app-name{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#ede8d8;}
+.app-sub{font-size:10px;color:#555;letter-spacing:2px;text-transform:uppercase;}
+.main-nav{display:flex;border-bottom:1px solid #222;margin-top:12px;overflow-x:auto;scrollbar-width:none;}
+.main-nav::-webkit-scrollbar{display:none;}
+.mnav-btn{flex:1;min-width:52px;padding:8px 2px 10px;border:none;background:none;font-size:9px;font-weight:600;color:#555;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;text-align:center;transition:all .18s;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.mnav-btn .nic{font-size:15px;}
+.mnav-btn.active{color:#c9a84c;border-bottom-color:#c9a84c;}
+.month-nav{display:flex;align-items:center;gap:8px;padding:12px 16px 0;}
+.month-btn{background:#1e1e22;border:1px solid #2a2a30;color:#aaa;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.month-label{font-size:13px;font-weight:600;color:#c9a84c;text-transform:capitalize;flex:1;text-align:center;}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px;}
+.sum-wide{grid-column:1/-1;}
+.scard{border-radius:14px;padding:13px 14px;}
+.scard-bal{background:linear-gradient(135deg,#c9a84c,#a87d2a);}
+.scard-in{background:#0f1f0f;border:1px solid #1e3d1e;}
+.scard-ex{background:#1f0f0f;border:1px solid #3d1e1e;}
+.scard-cc{background:#0f0f1f;border:1px solid #1e1e3d;}
+.scard-fi{background:#1f100a;border:1px solid #4a2a10;}
+.scard-fx{background:#0a1a1f;border:1px solid #104a3a;}
+.scard-ln{background:#1a0a1f;border:1px solid #3a104a;}
+.scard-lbl{font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;opacity:.65;margin-bottom:5px;}
+.scard-amt{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;}
+.scard-bal .scard-lbl,.scard-bal .scard-amt{color:#0c0c0f;}
+.scard-in .scard-amt{color:#4ecb4e;}.scard-ex .scard-amt{color:#e05a5a;}.scard-cc .scard-amt{color:#7b87f5;}
+.scard-fi .scard-amt{color:#e8893a;}.scard-fx .scard-amt{color:#3ecbba;}.scard-ln .scard-amt{color:#c97bf5;}
+.scard-sub{font-size:10px;color:#666;margin-top:2px;}
+.page{padding:12px 16px;display:flex;flex-direction:column;gap:10px;}
+.page-hdr{display:flex;align-items:center;justify-content:space-between;padding:4px 0 2px;}
+.page-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#ede8d8;}
+.add-btn{background:#1c180a;border:1px solid #c9a84c;border-radius:10px;color:#c9a84c;font-size:12px;font-weight:600;padding:7px 14px;cursor:pointer;}
+.sub-tabs{display:flex;gap:2px;border-bottom:1px solid #222;overflow-x:auto;scrollbar-width:none;}
+.sub-tabs::-webkit-scrollbar{display:none;}
+.stab{padding:7px 12px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:#555;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all .18s;}
+.stab.active{color:#c9a84c;border-bottom-color:#c9a84c;}
+.card{background:#141418;border:1px solid #202028;border-radius:14px;overflow:hidden;}
+.card-row{display:flex;align-items:center;gap:11px;padding:12px 14px;}
+.card-ic{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.card-ic.inc{background:#0f1f0f;}.card-ic.exp{background:#1f0f0f;}.card-ic.cc{background:#0f0f1f;}
+.card-ic.fi{background:#1f100a;}.card-ic.fx{background:#0a1a1f;}.card-ic.ln{background:#1a0a1f;}
+.card-body{flex:1;min-width:0;}
+.card-title{font-size:14px;font-weight:500;color:#ddd5bb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-meta{font-size:11px;color:#555;margin-top:3px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.card-right{text-align:right;flex-shrink:0;}
+.card-amt{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;}
+.card-amt.inc{color:#4ecb4e;}.card-amt.exp{color:#e05a5a;}.card-amt.cc{color:#7b87f5;}
+.card-amt.fi{color:#e8893a;}.card-amt.fx{color:#3ecbba;}.card-amt.ln{color:#c97bf5;}
+.card-actions{display:flex;gap:5px;margin-top:5px;justify-content:flex-end;flex-wrap:wrap;}
+.act{border:none;cursor:pointer;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:500;white-space:nowrap;}
+.act-edit{background:#222;color:#999;}.act-del{background:#2a1212;color:#e05a5a;}
+.act-pay{background:#1a2e0a;color:#4ecb4e;}.act-tog{background:#1c180a;color:#c9a84c;}
+.badge{background:#1e1e28;border:1px solid #2a2a3a;border-radius:5px;padding:1px 6px;font-size:10px;color:#7b87f5;white-space:nowrap;}
+.badge.green{color:#4ecb4e;border-color:#1e3d1e;background:#0f1f0f;}
+.badge.orange{color:#e8893a;border-color:#3a2010;background:#1a0f05;}
+.progress-wrap{height:4px;background:#222;border-radius:2px;overflow:hidden;margin-top:6px;}
+.progress-bar{height:100%;border-radius:2px;}
+.quota-list{background:#0f0f1c;border:1px solid #1e1e3d;border-radius:10px;margin:0 14px 14px;overflow:hidden;}
+.quota-row{display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid #181828;gap:10px;}
+.quota-row:last-child{border-bottom:none;}
+.quota-num{font-size:10px;color:#555;width:50px;}
+.quota-month{font-size:12px;color:#aaa;flex:1;text-transform:capitalize;}
+.quota-amt{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:#7b87f5;}
+.quota-cur{background:#1e1e3d;}
+.quota-cur .quota-month{color:#c9a84c;}.quota-cur .quota-amt{color:#c9a84c;}
+.store-card{background:#141418;border-radius:14px;overflow:hidden;border:1px solid #2a1e10;}
+.store-hdr{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;}
+.store-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.store-items{border-top:1px solid #2a1e10;}
+.fi-row{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid #1e150a;}
+.fi-row:last-child{border-bottom:none;}
+.fi-row-body{flex:1;min-width:0;}
+.fi-row-desc{font-size:13px;color:#c8bfa0;}
+.fi-row-date{font-size:10px;color:#555;margin-top:2px;}
+.fi-row-acts{display:flex;flex-direction:column;gap:4px;align-items:flex-end;}
+.store-footer{padding:10px 14px;background:#0f0a05;display:flex;justify-content:space-between;align-items:center;}
+.new-store-btn{background:#1f100a;border:1px solid #3a2010;border-radius:12px;padding:13px 14px;cursor:pointer;text-align:center;font-size:13px;color:#e8893a;display:flex;align-items:center;justify-content:center;gap:8px;}
+.paid-tag{font-size:10px;color:#4ecb4e;background:#0f1f0f;border:1px solid #1e3d1e;border-radius:5px;padding:1px 6px;}
+.sec-hdr{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;padding:8px 0 2px;}
+.fab{position:fixed;bottom:20px;right:16px;width:54px;height:54px;border-radius:50%;background:#c9a84c;border:none;cursor:pointer;font-size:28px;color:#0c0c0f;box-shadow:0 4px 20px rgba(201,168,76,.5);display:flex;align-items:center;justify-content:center;z-index:100;font-weight:700;}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:200;display:flex;align-items:flex-end;}
+.modal{background:#141418;border-radius:22px 22px 0 0;width:100%;padding:20px 16px 36px;border-top:1px solid #2a2a30;max-height:92vh;overflow-y:auto;}
+.modal-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:16px;color:#ede8d8;}
+.toggle4{display:flex;background:#0c0c0f;border-radius:11px;padding:4px;gap:3px;margin-bottom:14px;flex-wrap:wrap;}
+.t4btn{flex:1;min-width:55px;padding:8px 3px;border:none;border-radius:8px;font-size:11px;font-weight:500;cursor:pointer;background:transparent;color:#555;text-align:center;}
+.t4btn.exp{background:#2a1010;color:#e05a5a;}.t4btn.inc{background:#0f2010;color:#4ecb4e;}
+.t4btn.crd{background:#10102a;color:#7b87f5;}.t4btn.fid{background:#2a1005;color:#e8893a;}
+.flabel{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#555;margin-bottom:6px;}
+.fgroup{margin-bottom:13px;}
+.finput{width:100%;background:#0c0c0f;border:1px solid #222;border-radius:10px;color:#ede8d8;font-size:15px;padding:11px 13px;outline:none;}
+.finput:focus{border-color:#c9a84c;}
+select.finput{appearance:none;-webkit-appearance:none;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+.cbt{background:#0c0c0f;border:1px solid #222;border-radius:10px;padding:9px 4px;cursor:pointer;text-align:center;}
+.cbt.sel{border-color:#c9a84c;background:#1c180a;}
+.cbt-ic{font-size:18px;}.cbt-nm{font-size:10px;color:#666;margin-top:3px;}
+.cbt.sel .cbt-nm{color:#c9a84c;}
+.icon-grid{display:flex;flex-wrap:wrap;gap:8px;}
+.icbtn{width:40px;height:40px;border-radius:10px;background:#0c0c0f;border:1px solid #222;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;}
+.icbtn.sel{border-color:#c9a84c;background:#1c180a;}
+.color-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.color-dot{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
+.color-dot.sel{border-color:#fff;}
+.cc-box{background:#10102a;border:1px solid #1e1e3d;border-radius:12px;padding:13px 14px;margin-bottom:14px;}
+.fi-box{background:#1f100a;border:1px solid #3a2010;border-radius:12px;padding:13px 14px;margin-bottom:14px;}
+.box-title{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;}
+.cc-box .box-title{color:#7b87f5;}.fi-box .box-title{color:#e8893a;}
+.btn-sub{width:100%;padding:14px;background:#c9a84c;border:none;border-radius:13px;font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#0c0c0f;cursor:pointer;margin-top:14px;}
+.btn-can{width:100%;padding:11px;background:transparent;border:1px solid #222;border-radius:12px;font-size:14px;color:#555;cursor:pointer;margin-top:8px;}
+.empty{text-align:center;padding:36px 20px;color:#333;font-size:14px;}
+.inactive-tag{font-size:10px;color:#555;background:#1a1a1a;border:1px solid #333;border-radius:5px;padding:1px 6px;}
+.subtotal-row{border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:2px;}
+</style>
+<script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="save-banner" id="saveBanner">✓ Guardado</div>
+<div id="offline-badge">Sin internet</div>
+<div id="app"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script>
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+function updateOnline(){document.getElementById('offline-badge').style.display=navigator.onLine?'none':'block';}
+window.addEventListener('online',updateOnline);window.addEventListener('offline',updateOnline);updateOnline();
+function showSaveBanner(){var b=document.getElementById('saveBanner');b.classList.add('show');setTimeout(()=>b.classList.remove('show'),1500);}
+</script>
+<script type="text/babel">
+const {useState,useMemo,useEffect}=React;
+
+const fmt=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(n||0);
+const fmtDate=s=>{if(!s)return'';const d=new Date(s+'T00:00:00');return d.toLocaleDateString('es-AR',{day:'numeric',month:'short'});};
+const fmtMonth=s=>{if(!s)return'';const d=new Date(s+'-01T00:00:00');return d.toLocaleDateString('es-AR',{month:'long',year:'numeric'});};
+const todayStr=()=>new Date().toISOString().split('T')[0];
+const thisMonthStr=()=>new Date().toISOString().slice(0,7);
+const addMonths=(s,n)=>{const[y,m]=s.split('-').map(Number);const d=new Date(y,m-1+n,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;};
+const daysUntil=day=>{const now=new Date();const t=new Date(now.getFullYear(),now.getMonth(),day);if(t<now)t.setMonth(t.getMonth()+1);return Math.ceil((t-now)/86400000);};
+const urgColor=d=>d<=3?'#e05a5a':d<=7?'#e8893a':'#4ecb4e';
+
+const DEFAULT_CATS={
+  income:[{id:'salary',label:'Salario',icon:'💼'},{id:'freelance',label:'Freelance',icon:'💻'},{id:'investment',label:'Inversión',icon:'📈'},{id:'gift',label:'Regalo',icon:'🎁'},{id:'other_in',label:'Otro',icon:'➕'}],
+  expense:[{id:'food',label:'Comida',icon:'🍽️'},{id:'transport',label:'Transporte',icon:'🚗'},{id:'housing',label:'Vivienda',icon:'🏠'},{id:'health',label:'Salud',icon:'💊'},{id:'entertainment',label:'Ocio',icon:'🎬'},{id:'clothing',label:'Ropa',icon:'👕'},{id:'education',label:'Educación',icon:'📚'},{id:'services',label:'Servicios',icon:'⚡'},{id:'tech',label:'Tecnología',icon:'📱'},{id:'other_ex',label:'Otro',icon:'➖'}]
+};
+const FIXED_ICONS=['⚡','💧','🔥','📡','📱','🏠','🚗','📺','🌐','🏋️','📰','🎵','📋'];
+const CARDS=['Visa','Mastercard','American Express','Naranja X','MODO','Otro'];
+const STORE_COLORS=['#c9602a','#2a7ac9','#2ab06f','#9b2ac9','#c9a82a','#c92a5a'];
+const LOAN_ICONS=['🏦','🏠','🚗','📱','💊','🎓','💰','📋'];
+const EMOJI_OPTIONS=['💼','💻','📈','🎁','➕','🍽️','🚗','🏠','💊','🎬','👕','📚','⚡','📱','➖','🛒','☕','🍕','🎮','✈️','🏋️','💈','🐾','🎓','🔧','🏦','💰','🎵','🎨','⚽','🧴','🧹','🍺','🧃','🌿','💡','🔑','🎀','🛵','🚿','🏥','💅','📦','🧾','🎯','🛍️','🍫','🎲'];
+
+const ACC_ICONS=['🏦','💳','📱','💰','🏧','🌐','⭐','💎'];
+const ACC_COLORS=['#2a7ac9','#c9602a','#2ab06f','#9b2ac9','#c9a82a','#c92a5a','#3ecbba','#7b87f5'];
+
+const expandCC=tx=>{
+  const{id,totalAmount,installments,startMonth,description,category,cardName}=tx;
+  const per=Math.round(totalAmount/installments);
+  return Array.from({length:installments},(_,i)=>({parentId:id,month:addMonths(startMonth,i),quotaNum:i+1,description,category,cardName,amount:i===installments-1?totalAmount-per*(installments-1):per}));
+};
+
+const emptyTx=()=>({type:'expense',paymentMethod:'cash',category:'',description:'',amount:'',date:todayStr(),cardName:'Visa',installments:'1',startMonth:thisMonthStr(),storeName:'',accountId:''});
+const emptyFixed=()=>({name:'',icon:'⚡',amount:'',dueDay:'1'});
+const emptyLoan=()=>({name:'',icon:'🏦',totalAmount:'',monthlyPayment:'',dueDay:'1',startMonth:thisMonthStr(),totalInstallments:'',paidInstallments:'0'});
+
+const KEYS={tx:'mg_tx',stores:'mg_stores',fiado:'mg_fiado',fixed:'mg_fixed',loans:'mg_loans',cats:'mg_cats',fpaid:'mg_fpaid',accs:'mg_accs'};
+const load=(k,def)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch{return def;}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}};
+
+function App(){
+  const [transactions,setTransactions]=useState(()=>load(KEYS.tx,[]));
+  const [stores,setStores]=useState(()=>load(KEYS.stores,[]));
+  const [fiado,setFiado]=useState(()=>load(KEYS.fiado,[]));
+  const [fixed,setFixed]=useState(()=>load(KEYS.fixed,[
+    {id:'fx1',name:'Alquiler',icon:'🏠',amount:500000,dueDay:5,active:true},
+    {id:'fx2',name:'Luz',icon:'⚡',amount:59222,dueDay:11,active:true},
+    {id:'fx3',name:'Gas',icon:'🔥',amount:46931,dueDay:2,active:true},
+    {id:'fx4',name:'Internet',icon:'🌐',amount:62936,dueDay:5,active:true},
+    {id:'fx5',name:'Escuela',icon:'🏠',amount:262000,dueDay:10,active:true},
+    {id:'fx6',name:'Agua',icon:'💧',amount:92000,dueDay:10,active:true},
+    {id:'fx7',name:'Academia inglés',icon:'🌐',amount:100000,dueDay:10,active:true},
+  ]));
+  const [loans,setLoans]=useState(()=>load(KEYS.loans,[
+    {id:'l1',name:'Préstamo Mercado Pago',icon:'🏦',totalAmount:721848,monthlyPayment:60154,dueDay:11,startMonth:'2025-09',totalInstallments:12,paidInstallments:9,active:true},
+    {id:'l2',name:'Banco Supervielle',icon:'🏦',totalAmount:5320128,monthlyPayment:110761,dueDay:5,startMonth:'2024-12',totalInstallments:48,paidInstallments:14,active:true},
+    {id:'l3',name:'Banco Galicia',icon:'🏦',totalAmount:4988490,monthlyPayment:277085,dueDay:20,startMonth:'2025-07',totalInstallments:18,paidInstallments:5,active:true},
+  ]));
+  const [categories,setCategories]=useState(()=>load(KEYS.cats,DEFAULT_CATS));
+  const [accounts,setAccounts]=useState(()=>load(KEYS.accs,[
+    {id:'acc_efectivo',name:'Efectivo',icon:'💰',color:'#c9a82a',balance:0,type:'cash'},
+  ]));
+  const [fixedPaid,setFixedPaid]=useState(()=>load(KEYS.fpaid,{}));
+
+  useEffect(()=>{save(KEYS.accs,accounts);},[accounts]);
+  useEffect(()=>{save(KEYS.cats,categories);},[categories]);
+  useEffect(()=>{save(KEYS.fpaid,fixedPaid);},[fixedPaid]);
+  useEffect(()=>{save(KEYS.tx,transactions);showSaveBanner();},[transactions]);
+  useEffect(()=>{save(KEYS.stores,stores);},[stores]);
+  useEffect(()=>{save(KEYS.fiado,fiado);showSaveBanner();},[fiado]);
+  useEffect(()=>{save(KEYS.fixed,fixed);showSaveBanner();},[fixed]);
+  useEffect(()=>{save(KEYS.loans,loans);showSaveBanner();},[loans]);
+
+  const [mainTab,setMainTab]=useState('resumen');
+  const [movTab,setMovTab]=useState('all');
+  const [viewMonth,setViewMonth]=useState(thisMonthStr());
+  const [showTxForm,setShowTxForm]=useState(false);
+  const [showFixedForm,setShowFixedForm]=useState(false);
+  const [showLoanForm,setShowLoanForm]=useState(false);
+  const [showStoreModal,setShowStoreModal]=useState(false);
+  const [showAccForm,setShowAccForm]=useState(false);
+  const [editAccId,setEditAccId]=useState(null);
+  const [accForm,setAccForm]=useState({name:'',icon:'🏦',color:'#2a7ac9',balance:'',type:'bank'});
+  const [showCatForm,setShowCatForm]=useState(false);
+  const [showFixedPicker,setShowFixedPicker]=useState(false);
+  const [txForm,setTxForm]=useState(emptyTx());
+  const [fixedForm,setFixedForm]=useState(emptyFixed());
+  const [loanForm,setLoanForm]=useState(emptyLoan());
+  const [catForm,setCatForm]=useState({label:'',icon:'🛒'});
+  const [catFormType,setCatFormType]=useState('expense');
+  const [catTabType,setCatTabType]=useState('expense');
+  const [editCatId,setEditCatId]=useState(null);
+  const [editFixedId,setEditFixedId]=useState(null);
+  const [editLoanId,setEditLoanId]=useState(null);
+  const [newStoreName,setNewStoreName]=useState('');
+  const [newStoreColor,setNewStoreColor]=useState('#c9602a');
+  const [expandedCC,setExpandedCC]=useState(null);
+  const [expandedStore,setExpandedStore]=useState(null);
+
+  const ccThisMonth=useMemo(()=>transactions.filter(t=>t.paymentMethod==='credit').flatMap(expandCC).filter(q=>q.month===viewMonth),[transactions,viewMonth]);
+  const totalCC=useMemo(()=>ccThisMonth.reduce((s,q)=>s+q.amount,0),[ccThisMonth]);
+  const cashMonth=useMemo(()=>transactions.filter(t=>t.date&&t.date.slice(0,7)===viewMonth&&t.paymentMethod==='cash'),[transactions,viewMonth]);
+  const totalIncome=useMemo(()=>cashMonth.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0),[cashMonth]);
+  const totalCashExp=useMemo(()=>cashMonth.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0),[cashMonth]);
+  const fiadoByStore=useMemo(()=>{const m={};stores.forEach(s=>{const items=fiado.filter(f=>f.storeId===s.id&&!f.paid);m[s.id]={total:items.reduce((a,f)=>a+f.amount,0),items};});return m;},[stores,fiado]);
+  const totalFiado=useMemo(()=>Object.values(fiadoByStore).reduce((s,v)=>s+v.total,0),[fiadoByStore]);
+  const totalFixed=useMemo(()=>fixed.filter(f=>f.active).reduce((s,f)=>s+f.amount,0),[fixed]);
+  const totalLoans=useMemo(()=>loans.filter(l=>l.active&&l.paidInstallments<l.totalInstallments).reduce((s,l)=>s+l.monthlyPayment,0),[loans]);
+  const totalPagar=totalCashExp+totalFixed+totalLoans+totalCC+totalFiado;
+  const balance=totalIncome-totalPagar;
+
+  const getCat=id=>{const a=[...categories.income,...categories.expense];return a.find(c=>c.id===id)||{label:id,icon:'❓'};};
+  const getAcc=id=>accounts.find(a=>a.id===id)||{name:'Efectivo',icon:'💰',color:'#c9a82a'};
+  
+  const accountBalances=useMemo(()=>{
+    const balances={};
+    accounts.forEach(acc=>{balances[acc.id]=acc.balance||0;});
+    transactions.filter(t=>t.paymentMethod==='cash').forEach(t=>{
+      const aid=t.accountId||'acc_efectivo';
+      if(balances[aid]===undefined)balances[aid]=0;
+      if(t.type==='income') balances[aid]+=t.amount;
+      else balances[aid]-=t.amount;
+    });
+    return balances;
+  },[accounts,transactions]);
+
+  const feedItems=useMemo(()=>{
+    if(movTab==='credit')return transactions.filter(t=>t.paymentMethod==='credit').sort((a,b)=>b.date.localeCompare(a.date));
+    const base=cashMonth.filter(t=>movTab==='all'?true:t.type===movTab);
+    return [...base].sort((a,b)=>b.date.localeCompare(a.date));
+  },[movTab,cashMonth,transactions]);
+
+  // Handlers
+  const exportToExcel=()=>{
+    const wb=XLSX.utils.book_new();
+
+    // Sheet 1: Ingresos y gastos del mes
+    const txRows=[['Fecha','Tipo','Descripción','Categoría','Cuenta','Monto']];
+    [...transactions].sort((a,b)=>a.date.localeCompare(b.date)).forEach(t=>{
+      if(t.paymentMethod==='cash'){
+        const cat=getCat(t.category);
+        const acc=getAcc(t.accountId||'acc_efectivo');
+        txRows.push([t.date,t.type==='income'?'Ingreso':'Gasto',t.description,cat.label,acc.name,t.type==='income'?t.amount:-t.amount]);
+      } else if(t.paymentMethod==='credit'){
+        const quotas=expandCC(t);
+        quotas.forEach(q=>{
+          txRows.push([q.month+'-01','Cuota tarjeta',t.description+' ('+q.quotaNum+'/'+t.installments+')',getCat(t.category).label,t.cardName,-q.amount]);
+        });
+      }
+    });
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(txRows),'Movimientos');
+
+    // Sheet 2: Gastos fijos
+    const fixedRows=[['Nombre','Monto mensual','Día vencimiento','Estado']];
+    fixed.forEach(f=>fixedRows.push([f.name,f.amount,f.dueDay,f.active?'Activo':'Pausado']));
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(fixedRows),'Gastos Fijos');
+
+    // Sheet 3: Préstamos
+    const loanRows=[['Nombre','Cuota mensual','Día vencimiento','Cuotas pagadas','Cuotas totales','Saldo restante']];
+    loans.forEach(l=>loanRows.push([l.name,l.monthlyPayment,l.dueDay,l.paidInstallments,l.totalInstallments,(l.totalInstallments-l.paidInstallments)*l.monthlyPayment]));
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(loanRows),'Préstamos');
+
+    // Sheet 4: Fiado
+    const fiadoRows=[['Almacén','Descripción','Monto','Fecha','Estado']];
+    fiado.forEach(f=>{const store=stores.find(s=>s.id===f.storeId);fiadoRows.push([store?store.name:'?',f.description,f.amount,f.date,f.paid?'Pagado':'Pendiente']);});
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(fiadoRows),'Fiado');
+
+    // Sheet 5: Cuentas
+    const accRows=[['Cuenta','Tipo','Saldo inicial','Saldo actual']];
+    accounts.forEach(a=>accRows.push([a.name,a.type==='cash'?'Efectivo':a.type==='wallet'?'Billetera':'Banco',a.balance||0,accountBalances[a.id]||0]));
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(accRows),'Cuentas');
+
+    // Sheet 6: Resumen
+    const now=new Date();
+    const sumRows=[
+      ['Resumen financiero — '+now.toLocaleDateString('es-AR',{month:'long',year:'numeric'})],
+      [],
+      ['Total ingresos',totalIncome],
+      ['Gastos efectivo',totalCashExp],
+      ['Gastos fijos',totalFixed],
+      ['Cuotas préstamos',totalLoans],
+      ['Cuotas tarjeta',totalCC],
+      ['Fiado pendiente',totalFiado],
+      [],
+      ['TOTAL A PAGAR',totalPagar],
+      ['SALDO FINAL',balance],
+    ];
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(sumRows),'Resumen');
+
+    XLSX.writeFile(wb,'MisGastos_'+now.toISOString().slice(0,7)+'.xlsx');
+  };
+
+  const handleAccSubmit=()=>{
+    const f=accForm;if(!f.name.trim())return;
+    const item={...f,balance:parseFloat(f.balance||0)};
+    if(editAccId){
+      setAccounts(p=>p.map(a=>a.id===editAccId?{...a,...item}:a));
+      setEditAccId(null);
+    }else{
+      setAccounts(p=>[...p,{...item,id:'acc'+Date.now()}]);
+    }
+    setAccForm({name:'',icon:'🏦',color:'#2a7ac9',balance:'',type:'bank'});
+    setShowAccForm(false);
+  };
+
+  const handleTxSubmit=()=>{
+    const f=txForm;if(!f.description||!f.amount)return;
+    if(f.paymentMethod==='fiado'){
+      if(!f.storeName)return;
+      let s=stores.find(x=>x.name===f.storeName);
+      if(!s){s={id:'s'+Date.now(),name:f.storeName,color:'#c9602a'};setStores(p=>[...p,s]);}
+      setFiado(p=>[...p,{id:'f'+Date.now(),storeId:s.id,description:f.description,amount:parseFloat(f.amount),date:f.date,paid:false}]);
+    }else if(f.paymentMethod==='credit'){
+      if(!f.category)return;
+      setTransactions(p=>[...p,{id:Date.now(),type:'expense',paymentMethod:'credit',category:f.category,description:f.description,date:f.date,totalAmount:parseFloat(f.amount),installments:parseInt(f.installments),startMonth:f.startMonth,cardName:f.cardName}]);
+    }else{
+      if(!f.category)return;
+      const accountId=f.accountId||(accounts.length>0?accounts[0].id:'acc_efectivo');
+      setTransactions(p=>[...p,{id:Date.now(),type:f.type,paymentMethod:'cash',category:f.category,description:f.description,amount:parseFloat(f.amount),date:f.date,accountId}]);
+    }
+    setTxForm(emptyTx());setShowTxForm(false);
+  };
+
+  const handleFixedSubmit=()=>{
+    const f=fixedForm;if(!f.name||!f.amount||!f.dueDay)return;
+    const item={...f,amount:parseFloat(f.amount),dueDay:parseInt(f.dueDay),active:true};
+    if(editFixedId){setFixed(p=>p.map(x=>x.id===editFixedId?{...x,...item}:x));setEditFixedId(null);}
+    else setFixed(p=>[...p,{...item,id:'fx'+Date.now()}]);
+    setFixedForm(emptyFixed());setShowFixedForm(false);
+  };
+
+  const handleLoanSubmit=()=>{
+    const f=loanForm;if(!f.name||!f.monthlyPayment||!f.dueDay||!f.totalInstallments)return;
+    const item={...f,totalAmount:parseFloat(f.totalAmount||0),monthlyPayment:parseFloat(f.monthlyPayment),dueDay:parseInt(f.dueDay),totalInstallments:parseInt(f.totalInstallments),paidInstallments:parseInt(f.paidInstallments||0),active:true};
+    if(editLoanId){setLoans(p=>p.map(x=>x.id===editLoanId?{...x,...item}:x));setEditLoanId(null);}
+    else setLoans(p=>[...p,{...item,id:'l'+Date.now()}]);
+    setLoanForm(emptyLoan());setShowLoanForm(false);
+  };
+
+  const handleCatSubmit=()=>{
+    if(!catForm.label.trim())return;
+    const type=catFormType;
+    if(editCatId){
+      setCategories(prev=>({...prev,[type]:prev[type].map(c=>c.id===editCatId?{...c,label:catForm.label,icon:catForm.icon}:c)}));
+      setEditCatId(null);
+    }else{
+      setCategories(prev=>({...prev,[type]:[...prev[type],{id:'cat'+Date.now(),label:catForm.label.trim(),icon:catForm.icon}]}));
+    }
+    setCatForm({label:'',icon:'🛒'});setShowCatForm(false);
+  };
+
+  const NAV=[['resumen','📊','Resumen'],['cuentas','🏦','Cuentas'],['apagar','💳','A Pagar'],['movimientos','💸','Movim.'],['reportes','📈','Reportes'],['fijos','📌','Fijos'],['prestamos','🏦','Préstamos'],['fiado','🏪','Fiado'],['categorias','⚙️','Categ.']];
+
+  return (
+    <div style={{minHeight:'100vh',background:'#0c0c0f',paddingBottom:80}}>
+      <div className="hdr">
+        <div className="app-name">MisGastos</div>
+        <div className="app-sub">Control financiero personal</div>
+        <div className="main-nav">
+          {NAV.map(([k,ic,l])=>(
+            <button key={k} className={'mnav-btn'+(mainTab===k?' active':'')} onClick={()=>setMainTab(k)}>
+              <span className="nic">{ic}</span>{l}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ══ RESUMEN ══ */}
+      {mainTab==='resumen'&&(
+        <>
+          <div className="month-nav">
+            <button className="month-btn" onClick={()=>setViewMonth(m=>addMonths(m,-1))}>‹</button>
+            <div className="month-label">{fmtMonth(viewMonth)}</div>
+            <button className="month-btn" onClick={()=>setViewMonth(m=>addMonths(m,1))}>›</button>
+          </div>
+          <div className="summary">
+            <div className="scard scard-bal sum-wide">
+              <div className="scard-lbl">Balance del mes</div>
+              <div className="scard-amt">{fmt(balance)}</div>
+              <div className="scard-sub" style={{color:'rgba(0,0,0,.5)'}}>Ingresos − todos los compromisos</div>
+            </div>
+            <div className="scard scard-in"><div className="scard-lbl">💰 Ingresos</div><div className="scard-amt">{fmt(totalIncome)}</div></div>
+            <div className="scard scard-ex"><div className="scard-lbl">💸 Gastos</div><div className="scard-amt">{fmt(totalCashExp)}</div></div>
+            <div className="scard scard-fx"><div className="scard-lbl">📌 Gastos fijos</div><div className="scard-amt">{fmt(totalFixed)}</div><div className="scard-sub">{fixed.filter(f=>f.active).length} servicios</div></div>
+            <div className="scard scard-ln"><div className="scard-lbl">🏦 Préstamos</div><div className="scard-amt">{fmt(totalLoans)}</div></div>
+            <div className="scard scard-cc"><div className="scard-lbl">💳 Tarjeta</div><div className="scard-amt">{fmt(totalCC)}</div><div className="scard-sub">{ccThisMonth.length} cuota(s)</div></div>
+            <div className="scard scard-fi"><div className="scard-lbl">🏪 Fiado</div><div className="scard-amt">{fmt(totalFiado)}</div></div>
+          </div>
+          <div className="page" style={{paddingTop:4}}>
+            <div className="sec-hdr">Vencimientos próximos</div>
+            {[...fixed.filter(f=>f.active),...loans.filter(l=>l.active&&l.paidInstallments<l.totalInstallments)].sort((a,b)=>a.dueDay-b.dueDay).map(item=>{
+              const isL=!!item.monthlyPayment;const d=daysUntil(item.dueDay);const col=urgColor(d);
+              return(<div key={item.id} className="card"><div className="card-row">
+                <div className={'card-ic '+(isL?'ln':'fx')}>{item.icon}</div>
+                <div className="card-body"><div className="card-title">{item.name}</div><div className="card-meta"><span style={{color:col,fontWeight:600}}>● día {item.dueDay}</span><span style={{color:'#555'}}>· {d} día(s)</span></div></div>
+                <div className="card-right"><div className={'card-amt '+(isL?'ln':'fx')}>{fmt(isL?item.monthlyPayment:item.amount)}</div></div>
+              </div></div>);
+            })}
+          </div>
+        </>
+      )}
+
+      {/* ══ REPORTES ══ */}
+      {mainTab==='reportes'&&(
+        <>
+          <div className="month-nav">
+            <button className="month-btn" onClick={()=>setViewMonth(m=>addMonths(m,-1))}>‹</button>
+            <div className="month-label">{fmtMonth(viewMonth)}</div>
+            <button className="month-btn" onClick={()=>setViewMonth(m=>addMonths(m,1))}>›</button>
+          </div>
+          <div className="page" style={{paddingTop:8}}>
+
+            {/* Export button */}
+            <button onClick={exportToExcel} style={{width:'100%',padding:'14px',background:'linear-gradient(135deg,#1a3a1a,#0f2010)',border:'2px solid #4ecb4e',borderRadius:14,color:'#4ecb4e',fontSize:15,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:10}}>
+              📥 Descargar Excel del mes
+            </button>
+
+            {/* Gasto por categoría */}
+            <div style={{background:'#141418',border:'1px solid #202028',borderRadius:14,padding:'14px'}}>
+              <div style={{fontSize:13,fontWeight:600,color:'#ede8d8',marginBottom:14}}>💸 Gastos por categoría</div>
+              {(()=>{
+                const byCat={};
+                cashMonth.filter(t=>t.type==='expense').forEach(t=>{
+                  const cat=getCat(t.category);
+                  if(!byCat[t.category])byCat[t.category]={label:cat.label,icon:cat.icon,total:0};
+                  byCat[t.category].total+=t.amount;
+                });
+                // Add fixed expenses
+                fixed.filter(f=>f.active).forEach(f=>{
+                  const key='fixed_'+f.id;
+                  byCat[key]={label:f.name+' (fijo)',icon:f.icon,total:f.amount};
+                });
+                const entries=Object.values(byCat).sort((a,b)=>b.total-a.total);
+                const grandTotal=entries.reduce((s,e)=>s+e.total,0);
+                if(entries.length===0)return <div style={{color:'#444',fontSize:13,textAlign:'center',padding:'16px 0'}}>Sin gastos este mes</div>;
+                return entries.map((e,i)=>{
+                  const pct=grandTotal>0?Math.round((e.total/grandTotal)*100):0;
+                  const colors=['#e05a5a','#e8893a','#c9a84c','#4ecb4e','#3ecbba','#7b87f5','#c97bf5','#e8893a'];
+                  const col=colors[i%colors.length];
+                  return(
+                    <div key={i} style={{marginBottom:10}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
+                        <span style={{fontSize:13,color:'#ddd5bb'}}>{e.icon} {e.label}</span>
+                        <span style={{fontSize:13,fontFamily:"'Playfair Display',serif",fontWeight:700,color:col}}>{fmt(e.total)} <span style={{fontSize:10,color:'#666'}}>({pct}%)</span></span>
+                      </div>
+                      <div style={{height:6,background:'#222',borderRadius:3,overflow:'hidden'}}>
+                        <div style={{height:'100%',width:pct+'%',background:col,borderRadius:3,transition:'width .5s'}}/>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+
+            {/* Gasto por cuenta */}
+            {accounts.length>1&&(
+              <div style={{background:'#141418',border:'1px solid #202028',borderRadius:14,padding:'14px'}}>
+                <div style={{fontSize:13,fontWeight:600,color:'#ede8d8',marginBottom:14}}>🏦 Gastos por cuenta</div>
+                {(()=>{
+                  const byAcc={};
+                  cashMonth.filter(t=>t.type==='expense').forEach(t=>{
+                    const aid=t.accountId||'acc_efectivo';
+                    const acc=getAcc(aid);
+                    if(!byAcc[aid])byAcc[aid]={name:acc.name,icon:acc.icon,color:acc.color,total:0};
+                    byAcc[aid].total+=t.amount;
+                  });
+                  const entries=Object.values(byAcc).sort((a,b)=>b.total-a.total);
+                  const grandTotal=entries.reduce((s,e)=>s+e.total,0);
+                  if(entries.length===0)return <div style={{color:'#444',fontSize:13,textAlign:'center',padding:'8px 0'}}>Sin gastos registrados</div>;
+                  return entries.map((e,i)=>(
+                    <div key={i} style={{marginBottom:10}}>
+                      <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
+                        <span style={{fontSize:13,color:'#ddd5bb'}}>{e.icon} {e.name}</span>
+                        <span style={{fontSize:13,fontFamily:"'Playfair Display',serif",fontWeight:700,color:e.color}}>{fmt(e.total)}</span>
+                      </div>
+                      <div style={{height:6,background:'#222',borderRadius:3,overflow:'hidden'}}>
+                        <div style={{height:'100%',width:(grandTotal>0?Math.round((e.total/grandTotal)*100):0)+'%',background:e.color,borderRadius:3}}/>
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            )}
+
+            {/* Distribución ingresos vs gastos */}
+            <div style={{background:'#141418',border:'1px solid #202028',borderRadius:14,padding:'14px'}}>
+              <div style={{fontSize:13,fontWeight:600,color:'#ede8d8',marginBottom:14}}>⚖️ Ingresos vs Gastos</div>
+              {(()=>{
+                const total=totalIncome+totalPagar;
+                const incPct=total>0?Math.round((totalIncome/total)*100):50;
+                const expPct=100-incPct;
+                return(<>
+                  <div style={{display:'flex',height:20,borderRadius:10,overflow:'hidden',marginBottom:10}}>
+                    <div style={{width:incPct+'%',background:'#4ecb4e',transition:'width .5s'}}/>
+                    <div style={{width:expPct+'%',background:'#e05a5a'}}/>
+                  </div>
+                  <div style={{display:'flex',justifyContent:'space-between'}}>
+                    <span style={{fontSize:12,color:'#4ecb4e'}}>💰 Ingresos {incPct}% — {fmt(totalIncome)}</span>
+                    <span style={{fontSize:12,color:'#e05a5a'}}>{fmt(totalPagar)} — {expPct}% 💸</span>
+                  </div>
+                </>);
+              })()}
+            </div>
+
+          </div>
+        </>
+      )}
+
+      {/* ══ CUENTAS ══ */}
+      {mainTab==='cuentas'&&(
+        <div className="page">
+          <div className="page-hdr">
+            <div><div className="page-title">🏦 Mis Cuentas</div>
+              <div style={{fontSize:11,color:'#555',marginTop:2}}>
+                Total disponible: <span style={{color:'#4ecb4e',fontWeight:700}}>{fmt(Object.values(accountBalances).reduce((s,v)=>s+v,0))}</span>
+              </div>
+            </div>
+            <button className="add-btn" onClick={()=>{setAccForm({name:'',icon:'🏦',color:'#2a7ac9',balance:'',type:'bank'});setEditAccId(null);setShowAccForm(true);}}>+ Agregar</button>
+          </div>
+
+          {accounts.length===0&&<div className="empty">No hay cuentas registradas</div>}
+
+          {accounts.map(acc=>{
+            const bal=accountBalances[acc.id]||0;
+            return(
+              <div key={acc.id} className="card" style={{border:'1px solid '+acc.color+'44'}}>
+                <div className="card-row">
+                  <div style={{width:44,height:44,borderRadius:12,background:acc.color+'22',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>{acc.icon}</div>
+                  <div className="card-body">
+                    <div className="card-title">{acc.name}</div>
+                    <div className="card-meta">
+                      <span style={{color:acc.color,fontSize:10,fontWeight:600,textTransform:'uppercase',letterSpacing:1}}>{acc.type==='cash'?'Efectivo':acc.type==='wallet'?'Billetera virtual':'Banco'}</span>
+                    </div>
+                  </div>
+                  <div className="card-right">
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:bal>=0?acc.color:'#e05a5a'}}>{fmt(bal)}</div>
+                    <div style={{fontSize:10,color:'#555',marginTop:2}}>Saldo inicial: {fmt(acc.balance||0)}</div>
+                    <div className="card-actions">
+                      <button className="act act-edit" onClick={()=>{setAccForm({name:acc.name,icon:acc.icon,color:acc.color,balance:String(acc.balance||0),type:acc.type});setEditAccId(acc.id);setShowAccForm(true);}}>✏️</button>
+                      {acc.id!=='acc_efectivo'&&<button className="act act-del" onClick={()=>setAccounts(p=>p.filter(a=>a.id!==acc.id))}>✕</button>}
+                    </div>
+                  </div>
+                </div>
+                {/* Movimientos de esta cuenta */}
+                {transactions.filter(t=>t.paymentMethod==='cash'&&(t.accountId||'acc_efectivo')===acc.id).length>0&&(
+                  <div style={{borderTop:'1px solid '+acc.color+'22',padding:'8px 14px'}}>
+                    <div style={{fontSize:10,color:'#555',letterSpacing:1,textTransform:'uppercase',marginBottom:6}}>Últimos movimientos</div>
+                    {[...transactions.filter(t=>t.paymentMethod==='cash'&&(t.accountId||'acc_efectivo')===acc.id)].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3).map(t=>(
+                      <div key={t.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
+                        <span style={{fontSize:12,color:'#888'}}>{getCat(t.category).icon} {t.description}</span>
+                        <span style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:t.type==='income'?'#4ecb4e':'#e05a5a'}}>{t.type==='income'?'+':'-'}{fmt(t.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <button className="fab" onClick={()=>{setAccForm({name:'',icon:'🏦',color:'#2a7ac9',balance:'',type:'bank'});setEditAccId(null);setShowAccForm(true);}}>+</button>
+        </div>
+      )}
+
+      {/* ══ A PAGAR ══ */}
+      {mainTab==='apagar'&&(
+        <>
+          <div className="month-nav">
+            <button className="month-btn" onClick={()=>setViewMonth(m=>addMonths(m,-1))}>‹</button>
+            <div className="month-label">{fmtMonth(viewMonth)}</div>
+            <button className="month-btn" onClick={()=>setViewMonth(m=>addMonths(m,1))}>›</button>
+          </div>
+          <div className="page" style={{paddingTop:8}}>
+            <div className="sec-hdr">💰 Ingresos del mes</div>
+            {cashMonth.filter(t=>t.type==='income').length===0
+              ?<div style={{font:'500 12px DM Sans',color:'#444',padding:'4px 0'}}>Sin ingresos este mes</div>
+              :cashMonth.filter(t=>t.type==='income').map(t=>(
+                <div key={t.id} className="card"><div className="card-row">
+                  <div className="card-ic inc">{getCat(t.category).icon}</div>
+                  <div className="card-body"><div className="card-title">{t.description}</div><div className="card-meta">{getCat(t.category).label} · {fmtDate(t.date)}</div></div>
+                  <div className="card-right"><div className="card-amt inc">+{fmt(t.amount)}</div></div>
+                </div></div>
+              ))
+            }
+            <div className="subtotal-row" style={{background:'#0f1f0f',border:'1px solid #1e3d1e'}}>
+              <span style={{font:'600 12px DM Sans',color:'#4ecb4e'}}>Total ingresos</span>
+              <span style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:'#4ecb4e'}}>+{fmt(totalIncome)}</span>
+            </div>
+
+            {cashMonth.filter(t=>t.type==='expense').length>0&&<>
+              <div className="sec-hdr" style={{marginTop:4}}>💸 Gastos en efectivo</div>
+              {cashMonth.filter(t=>t.type==='expense').map(t=>(
+                <div key={t.id} className="card"><div className="card-row">
+                  <div className="card-ic exp">{getCat(t.category).icon}</div>
+                  <div className="card-body"><div className="card-title">{t.description}</div><div className="card-meta">{getCat(t.category).label} · {fmtDate(t.date)}</div></div>
+                  <div className="card-right"><div className="card-amt exp">-{fmt(t.amount)}</div></div>
+                </div></div>
+              ))}
+              <div className="subtotal-row" style={{background:'#1f0f0f',border:'1px solid #3d1e1e'}}>
+                <span style={{font:'600 12px DM Sans',color:'#e05a5a'}}>Subtotal efectivo</span>
+                <span style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:'#e05a5a'}}>-{fmt(totalCashExp)}</span>
+              </div>
+            </>}
+
+            {fixed.filter(f=>f.active).length>0&&<>
+              <div className="sec-hdr" style={{marginTop:4}}>📌 Gastos fijos</div>
+              {fixed.filter(f=>f.active).map(fx=>{
+                const d=daysUntil(fx.dueDay);
+                return(<div key={fx.id} className="card"><div className="card-row">
+                  <div className="card-ic fx">{fx.icon}</div>
+                  <div className="card-body"><div className="card-title">{fx.name}</div><div className="card-meta"><span style={{color:urgColor(d),fontWeight:600}}>● Vence día {fx.dueDay}</span><span style={{color:'#555'}}>· {d} día(s)</span></div></div>
+                  <div className="card-right"><div className="card-amt fx">-{fmt(fx.amount)}</div></div>
+                </div></div>);
+              })}
+              <div className="subtotal-row" style={{background:'#0a1a1f',border:'1px solid #104a3a'}}>
+                <span style={{font:'600 12px DM Sans',color:'#3ecbba'}}>Subtotal fijos</span>
+                <span style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:'#3ecbba'}}>-{fmt(totalFixed)}</span>
+              </div>
+            </>}
+
+            {loans.filter(l=>l.active&&l.paidInstallments<l.totalInstallments).length>0&&<>
+              <div className="sec-hdr" style={{marginTop:4}}>🏦 Cuotas de préstamos</div>
+              {loans.filter(l=>l.active&&l.paidInstallments<l.totalInstallments).map(l=>{
+                const d=daysUntil(l.dueDay);
+                return(<div key={l.id} className="card"><div className="card-row">
+                  <div className="card-ic ln">{l.icon}</div>
+                  <div className="card-body"><div className="card-title">{l.name}</div><div className="card-meta"><span style={{color:urgColor(d),fontWeight:600}}>● Vence día {l.dueDay}</span><span style={{color:'#555'}}>· cuota {l.paidInstallments+1}/{l.totalInstallments}</span></div></div>
+                  <div className="card-right"><div className="card-amt ln">-{fmt(l.monthlyPayment)}</div></div>
+                </div></div>);
+              })}
+              <div className="subtotal-row" style={{background:'#1a0a1f',border:'1px solid #3a104a'}}>
+                <span style={{font:'600 12px DM Sans',color:'#c97bf5'}}>Subtotal préstamos</span>
+                <span style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:'#c97bf5'}}>-{fmt(totalLoans)}</span>
+              </div>
+            </>}
+
+            {ccThisMonth.length>0&&<>
+              <div className="sec-hdr" style={{marginTop:4}}>💳 Cuotas de tarjeta</div>
+              {ccThisMonth.map(q=>{
+                const cat=getCat(q.category);
+                return(<div key={q.parentId+'-'+q.quotaNum} className="card"><div className="card-row">
+                  <div className="card-ic cc">{cat.icon}</div>
+                  <div className="card-body"><div className="card-title">{q.description}</div><div className="card-meta"><span className="badge">💳 {q.cardName}</span><span className="badge">Cuota {q.quotaNum}</span></div></div>
+                  <div className="card-right"><div className="card-amt cc">-{fmt(q.amount)}</div></div>
+                </div></div>);
+              })}
+              <div className="subtotal-row" style={{background:'#0f0f1f',border:'1px solid #1e1e3d'}}>
+                <span style={{font:'600 12px DM Sans',color:'#7b87f5'}}>Subtotal tarjeta</span>
+                <span style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:'#7b87f5'}}>-{fmt(totalCC)}</span>
+              </div>
+            </>}
+
+            {totalFiado>0&&<>
+              <div className="sec-hdr" style={{marginTop:4}}>🏪 Fiado pendiente</div>
+              {stores.filter(s=>(fiadoByStore[s.id]&&fiadoByStore[s.id].total>0)).map(s=>(
+                <div key={s.id} className="card"><div className="card-row">
+                  <div className="card-ic fi">🏪</div>
+                  <div className="card-body"><div className="card-title">{s.name}</div><div className="card-meta"><span className="badge orange">{fiadoByStore[s.id].items.length} ítem(s)</span></div></div>
+                  <div className="card-right"><div className="card-amt fi">-{fmt(fiadoByStore[s.id].total)}</div></div>
+                </div></div>
+              ))}
+              <div className="subtotal-row" style={{background:'#1f100a',border:'1px solid #4a2a10'}}>
+                <span style={{font:'600 12px DM Sans',color:'#e8893a'}}>Subtotal fiado</span>
+                <span style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:'#e8893a'}}>-{fmt(totalFiado)}</span>
+              </div>
+            </>}
+
+            {/* SALDO FINAL */}
+            <div style={{marginTop:8,background:'linear-gradient(135deg,#1a1a0a,#0f0f05)',border:'2px solid #c9a84c',borderRadius:16,padding:'16px 14px'}}>
+              <div style={{font:'600 11px DM Sans',color:'#c9a84c',letterSpacing:2,textTransform:'uppercase',marginBottom:10}}>Resumen — {fmtMonth(viewMonth)}</div>
+              <div style={{display:'flex',justifyContent:'space-between',font:'500 13px DM Sans',color:'#aaa',marginBottom:6}}>
+                <span>Total ingresos</span><span style={{color:'#4ecb4e',fontWeight:600}}>+{fmt(totalIncome)}</span>
+              </div>
+              <div style={{height:1,background:'#2a2a1a',margin:'8px 0'}}/>
+              {totalCashExp>0&&<div style={{display:'flex',justifyContent:'space-between',font:'500 12px DM Sans',color:'#888',marginBottom:4}}><span>Gastos efectivo</span><span>-{fmt(totalCashExp)}</span></div>}
+              {totalFixed>0&&<div style={{display:'flex',justifyContent:'space-between',font:'500 12px DM Sans',color:'#888',marginBottom:4}}><span>Gastos fijos</span><span>-{fmt(totalFixed)}</span></div>}
+              {totalLoans>0&&<div style={{display:'flex',justifyContent:'space-between',font:'500 12px DM Sans',color:'#888',marginBottom:4}}><span>Préstamos</span><span>-{fmt(totalLoans)}</span></div>}
+              {totalCC>0&&<div style={{display:'flex',justifyContent:'space-between',font:'500 12px DM Sans',color:'#888',marginBottom:4}}><span>Tarjeta</span><span>-{fmt(totalCC)}</span></div>}
+              {totalFiado>0&&<div style={{display:'flex',justifyContent:'space-between',font:'500 12px DM Sans',color:'#888',marginBottom:4}}><span>Fiado</span><span>-{fmt(totalFiado)}</span></div>}
+              <div style={{height:1,background:'#c9a84c55',margin:'10px 0'}}/>
+              <div style={{display:'flex',justifyContent:'space-between',font:'500 13px DM Sans',color:'#aaa',marginBottom:8}}>
+                <span>Total a pagar</span><span style={{color:'#e05a5a',fontWeight:700}}>-{fmt(totalPagar)}</span>
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <span style={{font:'700 14px DM Sans',color:'#c9a84c'}}>SALDO FINAL</span>
+                <span style={{fontFamily:"'Playfair Display',serif",fontSize:26,fontWeight:900,color:balance>=0?'#4ecb4e':'#e05a5a'}}>{fmt(balance)}</span>
+              </div>
+              <div style={{font:'500 11px DM Sans',color:balance>=0?'#4ecb4e':'#e05a5a',marginTop:8,textAlign:'center',background:balance>=0?'#0f1f0f':'#2a1010',borderRadius:8,padding:'6px'}}>
+                {balance>=0?'✓ Cerrás el mes con saldo positivo':'⚠️ Los gastos superan los ingresos este mes'}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ══ MOVIMIENTOS ══ */}
+      {mainTab==='movimientos'&&(
+        <>
+          <div className="month-nav">
+            <button className="month-btn" onClick={()=>setViewMonth(m=>addMonths(m,-1))}>‹</button>
+            <div className="month-label">{fmtMonth(viewMonth)}</div>
+            <button className="month-btn" onClick={()=>setViewMonth(m=>addMonths(m,1))}>›</button>
+          </div>
+          <div style={{padding:'0 16px'}}><div className="sub-tabs">
+            {[['all','Todo'],['income','Ingresos'],['egresos','Egresos']].map(([k,l])=>(
+              <button key={k} className={'stab'+(movTab===k?' active':'')} onClick={()=>setMovTab(k)}>{l}</button>
+            ))}
+          </div></div>
+          <div className="page">
+
+            {/* ── TODO ── */}
+            {movTab==='all'&&(()=>{
+              const cashInc=cashMonth.filter(t=>t.type==='income');
+              const cashExp=cashMonth.filter(t=>t.type==='expense');
+              const hasAny=cashInc.length>0||cashExp.length>0||ccThisMonth.length>0||totalFiado>0||fixed.filter(f=>f.active).length>0||loans.filter(l=>l.active&&l.paidInstallments<l.totalInstallments).length>0;
+              if(!hasAny)return <div className="empty">Sin movimientos este mes</div>;
+              return(<>
+                {cashInc.length>0&&<><div className="sec-hdr">💰 Ingresos</div>
+                  {cashInc.sort((a,b)=>b.date.localeCompare(a.date)).map(t=>{const cat=getCat(t.category);const acc=getAcc(t.accountId||'acc_efectivo');return(
+                    <div key={t.id} className="card"><div className="card-row">
+                      <div className="card-ic inc">{cat.icon}</div>
+                      <div className="card-body"><div className="card-title">{t.description}</div><div className="card-meta"><span>{cat.label}</span><span>·</span><span>{acc.icon} {acc.name}</span><span>·</span><span>{fmtDate(t.date)}</span></div></div>
+                      <div className="card-right"><div className="card-amt inc">+{fmt(t.amount)}</div><div className="card-actions"><button className="act act-del" onClick={()=>setTransactions(p=>p.filter(x=>x.id!==t.id))}>✕</button></div></div>
+                    </div></div>
+                  );})}
+                </>}
+                {cashExp.length>0&&<><div className="sec-hdr">💸 Gastos efectivo</div>
+                  {cashExp.sort((a,b)=>b.date.localeCompare(a.date)).map(t=>{const cat=getCat(t.category);const acc=getAcc(t.accountId||'acc_efectivo');return(
+                    <div key={t.id} className="card"><div className="card-row">
+                      <div className="card-ic exp">{cat.icon}</div>
+                      <div className="card-body"><div className="card-title">{t.description}</div><div className="card-meta"><span>{cat.label}</span><span>·</span><span>{acc.icon} {acc.name}</span><span>·</span><span>{fmtDate(t.date)}</span></div></div>
+                      <div className="card-right"><div className="card-amt exp">-{fmt(t.amount)}</div><div className="card-actions"><button className="act act-del" onClick={()=>setTransactions(p=>p.filter(x=>x.id!==t.id))}>✕</button></div></div>
+                    </div></div>
+                  );})}
+                </>}
+                {ccThisMonth.length>0&&<><div className="sec-hdr">💳 Cuotas tarjeta</div>
+                  {ccThisMonth.map(q=>{const cat=getCat(q.category);return(
+                    <div key={q.parentId+'-'+q.quotaNum} className="card"><div className="card-row">
+                      <div className="card-ic cc">{cat.icon}</div>
+                      <div className="card-body"><div className="card-title">{q.description}</div><div className="card-meta"><span className="badge">💳 {q.cardName}</span><span className="badge">Cuota {q.quotaNum}</span></div></div>
+                      <div className="card-right"><div className="card-amt cc">-{fmt(q.amount)}</div></div>
+                    </div></div>
+                  );})}
+                </>}
+                {fixed.filter(f=>f.active).length>0&&<><div className="sec-hdr">📌 Gastos fijos</div>
+                  {fixed.filter(f=>f.active).map(fx=>(
+                    <div key={fx.id} className="card"><div className="card-row">
+                      <div className="card-ic fx">{fx.icon}</div>
+                      <div className="card-body"><div className="card-title">{fx.name}</div><div className="card-meta"><span>Gasto fijo</span><span>·</span><span style={{color:urgColor(daysUntil(fx.dueDay)),fontWeight:600}}>Vence día {fx.dueDay}</span></div></div>
+                      <div className="card-right"><div className="card-amt fx">-{fmt(fx.amount)}</div></div>
+                    </div></div>
+                  ))}
+                </>}
+                {loans.filter(l=>l.active&&l.paidInstallments<l.totalInstallments).length>0&&<><div className="sec-hdr">🏦 Préstamos</div>
+                  {loans.filter(l=>l.active&&l.paidInstallments<l.totalInstallments).map(l=>(
+                    <div key={l.id} className="card"><div className="card-row">
+                      <div className="card-ic ln">{l.icon}</div>
+                      <div className="card-body"><div className="card-title">{l.name}</div><div className="card-meta"><span>Cuota {l.paidInstallments+1}/{l.totalInstallments}</span><span>·</span><span style={{color:urgColor(daysUntil(l.dueDay)),fontWeight:600}}>Vence día {l.dueDay}</span></div></div>
+                      <div className="card-right"><div className="card-amt ln">-{fmt(l.monthlyPayment)}</div></div>
+                    </div></div>
+                  ))}
+                </>}
+                {totalFiado>0&&<><div className="sec-hdr">🏪 Fiado</div>
+                  {stores.filter(s=>fiadoByStore[s.id]&&fiadoByStore[s.id].total>0).map(s=>(
+                    <div key={s.id} className="card"><div className="card-row">
+                      <div className="card-ic fi">🏪</div>
+                      <div className="card-body"><div className="card-title">{s.name}</div><div className="card-meta"><span className="badge orange">{fiadoByStore[s.id].items.length} ítem(s)</span></div></div>
+                      <div className="card-right"><div className="card-amt fi">-{fmt(fiadoByStore[s.id].total)}</div></div>
+                    </div></div>
+                  ))}
+                </>}
+              </>);
+            })()}
+
+            {/* ── INGRESOS ── */}
+            {movTab==='income'&&(()=>{
+              const inc=cashMonth.filter(t=>t.type==='income').sort((a,b)=>b.date.localeCompare(a.date));
+              if(inc.length===0)return <div className="empty">Sin ingresos este mes</div>;
+              return(<>
+                {inc.map(t=>{
+                  const cat=getCat(t.category);
+                  const acc=getAcc(t.accountId||'acc_efectivo');
+                  return(
+                    <div key={t.id} className="card"><div className="card-row">
+                      <div className="card-ic inc">{cat.icon}</div>
+                      <div className="card-body">
+                        <div className="card-title">{t.description}</div>
+                        <div className="card-meta">
+                          <span>{cat.label}</span><span>·</span>
+                          <span style={{color:acc.color||'#c9a84c',fontWeight:600}}>{acc.icon} {acc.name}</span>
+                        </div>
+                        <div className="card-meta" style={{marginTop:2}}><span>{fmtDate(t.date)}</span></div>
+                      </div>
+                      <div className="card-right">
+                        <div className="card-amt inc">+{fmt(t.amount)}</div>
+                        <div className="card-actions"><button className="act act-del" onClick={()=>setTransactions(p=>p.filter(x=>x.id!==t.id))}>✕</button></div>
+                      </div>
+                    </div></div>
+                  );
+                })}
+                <div style={{background:'#0f1f0f',border:'1px solid #1e3d1e',borderRadius:12,padding:'12px 14px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <span style={{font:'600 13px DM Sans',color:'#4ecb4e'}}>Total ingresos del mes</span>
+                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:'#4ecb4e'}}>+{fmt(totalIncome)}</span>
+                </div>
+              </>);
+            })()}
+
+            {/* ── EGRESOS ── */}
+            {movTab==='egresos'&&(()=>{
+              const cashExp=cashMonth.filter(t=>t.type==='expense').sort((a,b)=>b.date.localeCompare(a.date));
+              const hasAny=cashExp.length>0||ccThisMonth.length>0||fixed.filter(f=>f.active).length>0||loans.filter(l=>l.active&&l.paidInstallments<l.totalInstallments).length>0||totalFiado>0;
+              if(!hasAny)return <div className="empty">Sin egresos este mes</div>;
+              return(<>
+                {cashExp.length>0&&<><div className="sec-hdr">💸 Gastos en efectivo / débito</div>
+                  {cashExp.map(t=>{
+                    const cat=getCat(t.category);
+                    const acc=getAcc(t.accountId||'acc_efectivo');
+                    return(
+                      <div key={t.id} className="card"><div className="card-row">
+                        <div className="card-ic exp">{cat.icon}</div>
+                        <div className="card-body">
+                          <div className="card-title">{t.description}</div>
+                          <div className="card-meta">
+                            <span>{cat.label}</span><span>·</span>
+                            <span style={{color:acc.color||'#c9a84c',fontWeight:600}}>{acc.icon} {acc.name}</span>
+                          </div>
+                          <div className="card-meta" style={{marginTop:2}}><span>{fmtDate(t.date)}</span></div>
+                        </div>
+                        <div className="card-right">
+                          <div className="card-amt exp">-{fmt(t.amount)}</div>
+                          <div className="card-actions"><button className="act act-del" onClick={()=>setTransactions(p=>p.filter(x=>x.id!==t.id))}>✕</button></div>
+                        </div>
+                      </div></div>
+                    );
+                  })}
+                </>}
+                {ccThisMonth.length>0&&<><div className="sec-hdr">💳 Tarjeta de crédito</div>
+                  {ccThisMonth.map(q=>{
+                    const cat=getCat(q.category);
+                    const tx=transactions.find(t=>t.id===q.parentId);
+                    return(
+                      <div key={q.parentId+'-'+q.quotaNum} className="card"><div className="card-row">
+                        <div className="card-ic cc">{cat.icon}</div>
+                        <div className="card-body">
+                          <div className="card-title">{q.description}</div>
+                          <div className="card-meta"><span className="badge">💳 {q.cardName}</span><span className="badge">Cuota {q.quotaNum}/{tx?tx.installments:'?'}</span></div>
+                          <div className="card-meta" style={{marginTop:2}}><span>Vence con resumen del mes</span></div>
+                        </div>
+                        <div className="card-right"><div className="card-amt cc">-{fmt(q.amount)}</div></div>
+                      </div></div>
+                    );
+                  })}
+                </>}
+                {fixed.filter(f=>f.active).length>0&&<><div className="sec-hdr">📌 Gastos fijos</div>
+                  {fixed.filter(f=>f.active).map(fx=>(
+                    <div key={fx.id} className="card"><div className="card-row">
+                      <div className="card-ic fx">{fx.icon}</div>
+                      <div className="card-body">
+                        <div className="card-title">{fx.name}</div>
+                        <div className="card-meta"><span>Gasto fijo mensual</span><span>·</span><span style={{color:urgColor(daysUntil(fx.dueDay)),fontWeight:600}}>Vence día {fx.dueDay}</span></div>
+                      </div>
+                      <div className="card-right"><div className="card-amt fx">-{fmt(fx.amount)}</div></div>
+                    </div></div>
+                  ))}
+                </>}
+                {loans.filter(l=>l.active&&l.paidInstallments<l.totalInstallments).length>0&&<><div className="sec-hdr">🏦 Cuotas de préstamos</div>
+                  {loans.filter(l=>l.active&&l.paidInstallments<l.totalInstallments).map(l=>(
+                    <div key={l.id} className="card"><div className="card-row">
+                      <div className="card-ic ln">{l.icon}</div>
+                      <div className="card-body">
+                        <div className="card-title">{l.name}</div>
+                        <div className="card-meta"><span>Cuota {l.paidInstallments+1} de {l.totalInstallments}</span><span>·</span><span style={{color:urgColor(daysUntil(l.dueDay)),fontWeight:600}}>Vence día {l.dueDay}</span></div>
+                      </div>
+                      <div className="card-right"><div className="card-amt ln">-{fmt(l.monthlyPayment)}</div></div>
+                    </div></div>
+                  ))}
+                </>}
+                {totalFiado>0&&<><div className="sec-hdr">🏪 Fiado / Cuenta corriente</div>
+                  {fiado.filter(f=>!f.paid).map(f=>{
+                    const store=stores.find(s=>s.id===f.storeId);
+                    return(
+                      <div key={f.id} className="card"><div className="card-row">
+                        <div className="card-ic fi">🏪</div>
+                        <div className="card-body">
+                          <div className="card-title">{f.description}</div>
+                          <div className="card-meta"><span>{store?store.name:'Almacén'}</span><span>·</span><span>{fmtDate(f.date)}</span></div>
+                        </div>
+                        <div className="card-right"><div className="card-amt fi">-{fmt(f.amount)}</div></div>
+                      </div></div>
+                    );
+                  })}
+                </>}
+                <div style={{background:'#1f0f0f',border:'1px solid #3d1e1e',borderRadius:12,padding:'12px 14px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <span style={{font:'600 13px DM Sans',color:'#e05a5a'}}>Total egresos del mes</span>
+                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:'#e05a5a'}}>-{fmt(totalPagar)}</span>
+                </div>
+              </>);
+            })()}
+
+          </div>
+          <button className="fab" onClick={()=>setShowTxForm(true)}>+</button>
+        </>
+      )}
+
+      {/* ══ GASTOS FIJOS ══ */}
+      {mainTab==='fijos'&&(
+        <div className="page">
+          <div className="page-hdr">
+            <div><div className="page-title">📌 Gastos Fijos</div><div style={{fontSize:11,color:'#555',marginTop:2}}>Total: <span style={{color:'#3ecbba',fontWeight:700}}>{fmt(totalFixed)}</span></div></div>
+            <button className="add-btn" onClick={()=>{setFixedForm(emptyFixed());setEditFixedId(null);setShowFixedForm(true);}}>+ Agregar</button>
+          </div>
+          {fixed.length===0&&<div className="empty">Sin gastos fijos registrados</div>}
+          {fixed.map(fx=>{
+            const d=daysUntil(fx.dueDay);
+            const paidKey=viewMonth+'_'+fx.id;
+            const isPaid=!!(fixedPaid[paidKey]);
+            return(
+            <div key={fx.id} className="card" style={{opacity:fx.active?1:.5,border:isPaid?'1px solid #1e3d1e':'1px solid #202028'}}><div className="card-row">
+              <div className="card-ic fx" style={{fontSize:22}}>{fx.icon}</div>
+              <div className="card-body">
+                <div className="card-title" style={{textDecoration:isPaid?'line-through':'none',color:isPaid?'#555':'#ddd5bb'}}>{fx.name}</div>
+                <div className="card-meta">
+                  {isPaid
+                    ? <span className="badge green">✓ Pagado {fmtMonth(viewMonth)}</span>
+                    : fx.active?<><span style={{color:urgColor(d),fontWeight:600}}>● día {fx.dueDay}</span><span style={{color:'#555'}}>· {d} día(s)</span></>:<span className="inactive-tag">pausado</span>
+                  }
+                </div>
+              </div>
+              <div className="card-right">
+                <div className="card-amt fx" style={{color:isPaid?'#555':'#3ecbba'}}>{fmt(fx.amount)}</div>
+                <div className="card-actions">
+                  {fx.active&&(isPaid
+                    ? <button className="act act-tog" onClick={()=>setFixedPaid(p=>{const n={...p};delete n[paidKey];return n;})}>Deshacer</button>
+                    : <button className="act act-pay" onClick={()=>setFixedPaid(p=>({...p,[paidKey]:true}))}>✓ Pagué</button>
+                  )}
+                  <button className="act act-tog" onClick={()=>setFixed(p=>p.map(x=>x.id===fx.id?{...x,active:!x.active}:x))}>{fx.active?'Pausar':'Activar'}</button>
+                  <button className="act act-edit" onClick={()=>{setFixedForm({name:fx.name,icon:fx.icon,amount:String(fx.amount),dueDay:String(fx.dueDay)});setEditFixedId(fx.id);setShowFixedForm(true);}}>✏️</button>
+                  <button className="act act-del" onClick={()=>setFixed(p=>p.filter(x=>x.id!==fx.id))}>✕</button>
+                </div>
+              </div>
+            </div></div>
+          );})}
+          <button className="fab" style={{background:'#3ecbba'}} onClick={()=>{setFixedForm(emptyFixed());setEditFixedId(null);setShowFixedForm(true);}}>+</button>
+        </div>
+      )}
+
+      {/* ══ PRÉSTAMOS ══ */}
+      {mainTab==='prestamos'&&(
+        <div className="page">
+          <div className="page-hdr">
+            <div><div className="page-title">🏦 Préstamos</div><div style={{fontSize:11,color:'#555',marginTop:2}}>Cuota total: <span style={{color:'#c97bf5',fontWeight:700}}>{fmt(totalLoans)}</span></div></div>
+            <button className="add-btn" style={{borderColor:'#c97bf5',color:'#c97bf5'}} onClick={()=>{setLoanForm(emptyLoan());setEditLoanId(null);setShowLoanForm(true);}}>+ Agregar</button>
+          </div>
+          {loans.length===0&&<div className="empty">Sin préstamos registrados</div>}
+          {loans.map(l=>{
+            const rem=l.totalInstallments-l.paidInstallments;const pct=Math.round((l.paidInstallments/l.totalInstallments)*100);const d=daysUntil(l.dueDay);const fin=rem<=0;
+            return(<div key={l.id} className="card" style={{opacity:fin?.6:1}}><div className="card-row">
+              <div className="card-ic ln" style={{fontSize:22}}>{l.icon}</div>
+              <div className="card-body">
+                <div className="card-title">{l.name}</div>
+                <div className="card-meta">{fin?<span className="badge green">✓ Saldado</span>:<><span style={{color:urgColor(d),fontWeight:600}}>● día {l.dueDay}</span><span style={{color:'#555'}}>· {d} día(s)</span></>}</div>
+                <div className="progress-wrap"><div className="progress-bar" style={{width:pct+'%',background:fin?'#4ecb4e':'#c97bf5'}}/></div>
+                <div style={{fontSize:10,color:'#555',marginTop:3}}>{l.paidInstallments}/{l.totalInstallments} cuotas ({pct}%)</div>
+              </div>
+              <div className="card-right">
+                <div className="card-amt ln">{fmt(l.monthlyPayment)}<span style={{fontSize:10,color:'#555'}}>/mes</span></div>
+                <div style={{fontSize:10,color:'#666',marginTop:2}}>{rem} restantes · Saldo: {fmt(rem*l.monthlyPayment)}</div>
+                <div className="card-actions">
+                  {!fin&&<button className="act act-pay" onClick={()=>setLoans(p=>p.map(x=>x.id===l.id?{...x,paidInstallments:Math.min(x.paidInstallments+1,x.totalInstallments)}:x))}>✓ Pagué</button>}
+                  <button className="act act-edit" onClick={()=>{setLoanForm({name:l.name,icon:l.icon,totalAmount:String(l.totalAmount),monthlyPayment:String(l.monthlyPayment),dueDay:String(l.dueDay),startMonth:l.startMonth,totalInstallments:String(l.totalInstallments),paidInstallments:String(l.paidInstallments)});setEditLoanId(l.id);setShowLoanForm(true);}}>✏️</button>
+                  <button className="act act-del" onClick={()=>setLoans(p=>p.filter(x=>x.id!==l.id))}>✕</button>
+                </div>
+              </div>
+            </div></div>);
+          })}
+          <button className="fab" style={{background:'#c97bf5'}} onClick={()=>{setLoanForm(emptyLoan());setEditLoanId(null);setShowLoanForm(true);}}>+</button>
+        </div>
+      )}
+
+      {/* ══ FIADO ══ */}
+      {mainTab==='fiado'&&(
+        <div className="page">
+          <div className="page-hdr">
+            <div><div className="page-title">🏪 Cuenta Corriente</div><div style={{fontSize:11,color:'#555',marginTop:2}}>Pendiente: <span style={{color:'#e8893a',fontWeight:700}}>{fmt(totalFiado)}</span></div></div>
+            <button className="add-btn" style={{borderColor:'#e8893a',color:'#e8893a'}} onClick={()=>setShowStoreModal(true)}>+ Almacén</button>
+          </div>
+          {stores.length===0&&<div className="empty">No hay almacenes registrados</div>}
+          {stores.map(store=>{
+            const data=fiadoByStore[store.id]||{total:0,items:[]};const allItems=fiado.filter(f=>f.storeId===store.id).sort((a,b)=>b.date.localeCompare(a.date));const isOpen=expandedStore===store.id;
+            return(<div key={store.id} className="store-card">
+              <div className="store-hdr" onClick={()=>setExpandedStore(isOpen?null:store.id)}>
+                <div className="store-dot" style={{background:store.color}}/>
+                <div style={{flex:1}}><div style={{fontSize:14,fontWeight:500,color:'#ddd5bb'}}>{store.name}</div><div style={{fontSize:10,color:'#555',marginTop:2}}>{data.items.length} pendiente(s)</div></div>
+                <div style={{textAlign:'right'}}><div style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:'#e8893a'}}>{fmt(data.total)}</div><div style={{fontSize:10,color:'#555'}}>{isOpen?'▲':'▼'}</div></div>
+              </div>
+              {isOpen&&<div className="store-items">
+                {allItems.length===0&&<div style={{padding:'12px 14px',fontSize:14,color:'#444'}}>Sin ítems</div>}
+                {allItems.map(fi=>(<div key={fi.id} className="fi-row">
+                  <div className="fi-row-body"><div className="fi-row-desc">{fi.description}</div><div className="fi-row-date">{fmtDate(fi.date)}{fi.paid&&fi.paidDate?' · Pagado '+fmtDate(fi.paidDate):''}</div></div>
+                  <div className="fi-row-acts">
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:fi.paid?'#555':'#e8893a',textDecoration:fi.paid?'line-through':'none'}}>{fmt(fi.amount)}</div>
+                    {fi.paid?<><span className="paid-tag">✓ pagado</span><button className="act act-edit" onClick={()=>setFiado(p=>p.map(f=>f.id===fi.id?{...f,paid:false,paidDate:undefined}:f))}>deshacer</button></>
+                      :<button className="act act-pay" onClick={()=>setFiado(p=>p.map(f=>f.id===fi.id?{...f,paid:true,paidDate:todayStr()}:f))}>✓ Pagué</button>}
+                    <button className="act act-del" onClick={()=>setFiado(p=>p.filter(f=>f.id!==fi.id))}>✕</button>
+                  </div>
+                </div>))}
+                <div className="store-footer">
+                  <span style={{fontSize:11,color:'#666'}}>Deuda: <b style={{color:'#e8893a'}}>{fmt(data.total)}</b></span>
+                  <button className="act act-del" onClick={()=>{setStores(p=>p.filter(s=>s.id!==store.id));setFiado(p=>p.filter(f=>f.storeId!==store.id));if(expandedStore===store.id)setExpandedStore(null);}}>Eliminar</button>
+                </div>
+              </div>}
+            </div>);
+          })}
+          <button className="new-store-btn" onClick={()=>setShowStoreModal(true)}><span style={{fontSize:20}}>🏪</span> Agregar almacén</button>
+          <button className="fab" style={{background:'#e8893a'}} onClick={()=>setShowTxForm(true)}>+</button>
+        </div>
+      )}
+
+      {/* ══ CATEGORÍAS ══ */}
+      {mainTab==='categorias'&&(
+        <div className="page">
+          <div className="page-hdr">
+            <div><div className="page-title">⚙️ Categorías</div></div>
+          </div>
+          <div className="sub-tabs" style={{marginBottom:4}}>
+            <button className={'stab'+(catTabType==='expense'?' active':'')} onClick={()=>setCatTabType('expense')}>💸 Gastos</button>
+            <button className={'stab'+(catTabType==='income'?' active':'')} onClick={()=>setCatTabType('income')}>💰 Ingresos</button>
+          </div>
+          {categories[catTabType].map(cat=>(
+            <div key={cat.id} className="card"><div className="card-row">
+              <div className={'card-ic '+(catTabType==='income'?'inc':'exp')} style={{fontSize:22}}>{cat.icon}</div>
+              <div className="card-body"><div className="card-title">{cat.label}</div></div>
+              <div className="card-right"><div className="card-actions">
+                <button className="act act-edit" onClick={()=>{setCatForm({label:cat.label,icon:cat.icon});setEditCatId(cat.id);setCatFormType(catTabType);setShowCatForm(true);}}>✏️</button>
+                <button className="act act-del" onClick={()=>{if(categories[catTabType].length<=1){alert('Debe haber al menos una categoría');return;}setCategories(prev=>({...prev,[catTabType]:prev[catTabType].filter(c=>c.id!==cat.id)}));}}>✕</button>
+              </div></div>
+            </div></div>
+          ))}
+          <button className="fab" style={{background:catTabType==='income'?'#4ecb4e':'#e05a5a'}} onClick={()=>{setCatForm({label:'',icon:'🛒'});setEditCatId(null);setCatFormType(catTabType);setShowCatForm(true);}}>+</button>
+        </div>
+      )}
+
+      {/* MODALS */}
+      {showTxForm&&<div className="overlay" onClick={e=>e.target===e.currentTarget&&(setShowTxForm(false),setTxForm(emptyTx()))}>
+        <div className="modal">
+          <div className="modal-title">Nuevo movimiento</div>
+          <div className="toggle4">
+            <button className={'t4btn'+(txForm.type==='expense'&&txForm.paymentMethod==='cash'?' exp':'')} onClick={()=>setTxForm(f=>({...f,type:'expense',paymentMethod:'cash',category:''}))}>💸 Gasto</button>
+            <button className={'t4btn'+(txForm.type==='income'?' inc':'')} onClick={()=>setTxForm(f=>({...f,type:'income',paymentMethod:'cash',category:''}))}>💰 Ingreso</button>
+            <button className={'t4btn'+(txForm.paymentMethod==='credit'?' crd':'')} onClick={()=>setTxForm(f=>({...f,type:'expense',paymentMethod:'credit',category:''}))}>💳 Tarjeta</button>
+            <button className={'t4btn'+(txForm.paymentMethod==='fiado'?' fid':'')} onClick={()=>setTxForm(f=>({...f,type:'expense',paymentMethod:'fiado',category:'food'}))}>🏪 Fiado</button>
+          </div>
+          {(txForm.type==='expense'||txForm.paymentMethod==='cash')&&txForm.paymentMethod!=='credit'&&txForm.paymentMethod!=='fiado'&&fixed.filter(f=>f.active).length>0&&(
+            <div style={{marginBottom:14}}>
+              <div className="flabel">Cargar desde gasto fijo</div>
+              <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                {fixed.filter(f=>f.active).map(fx=>(
+                  <button key={fx.id}
+                    onClick={()=>setTxForm(f=>({...f,type:'expense',paymentMethod:'cash',description:fx.name,amount:String(fx.amount),category:'services'}))}
+                    style={{background:'#0a1a1f',border:'1px solid #1a4a3a',borderRadius:10,padding:'7px 10px',cursor:'pointer',display:'flex',alignItems:'center',gap:6,fontSize:12,color:'#3ecbba',fontWeight:500}}>
+                    {fx.icon} {fx.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {txForm.paymentMethod==='fiado'&&<div className="fi-box"><div className="box-title">🏪 Fiado</div>
+            <div className="fgroup" style={{marginBottom:0}}><div className="flabel">Almacén</div>
+              <select className="finput" value={txForm.storeName} onChange={e=>setTxForm(f=>({...f,storeName:e.target.value}))}>
+                <option value="">— Seleccioná —</option>
+                {stores.map(s=><option key={s.id} value={s.name}>{s.name}</option>)}
+              </select>
+            </div>
+          </div>}
+          {txForm.paymentMethod!=='credit'&&txForm.paymentMethod!=='fiado'&&(
+            <div className="fgroup">
+              <div className="flabel">{txForm.type==='income'?'Entra en cuenta':'Sale de cuenta'}</div>
+              <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                {accounts.map(acc=>{
+                  const isSelected = txForm.accountId ? txForm.accountId===acc.id : accounts[0]&&accounts[0].id===acc.id;
+                  return(
+                    <button key={acc.id}
+                      onClick={()=>setTxForm(f=>({...f,accountId:acc.id}))}
+                      style={{background:isSelected?acc.color+'33':'#1a1a1a',border:'2px solid '+(isSelected?acc.color:'#2a2a2a'),borderRadius:10,padding:'7px 12px',cursor:'pointer',display:'flex',alignItems:'center',gap:6,fontSize:12,color:isSelected?acc.color:'#666',fontWeight:600,transition:'all .18s'}}>
+                      {acc.icon} {acc.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          <div className="fgroup"><div className="flabel">Descripción</div><input className="finput" placeholder="Ej: Almuerzo, sueldo…" value={txForm.description} onChange={e=>setTxForm(f=>({...f,description:e.target.value}))}/></div>
+          <div className="fgroup"><div className="flabel">{txForm.paymentMethod==='credit'?'Monto total ($)':'Monto ($)'}</div><input className="finput" type="number" placeholder="0" value={txForm.amount} onChange={e=>setTxForm(f=>({...f,amount:e.target.value}))}/></div>
+          {txForm.paymentMethod==='credit'&&<div className="cc-box"><div className="box-title">💳 Datos de cuotas</div>
+            <div className="row2">
+              <div className="fgroup" style={{marginBottom:0}}><div className="flabel">Tarjeta</div><select className="finput" value={txForm.cardName} onChange={e=>setTxForm(f=>({...f,cardName:e.target.value}))}>{CARDS.map(c=><option key={c}>{c}</option>)}</select></div>
+              <div className="fgroup" style={{marginBottom:0}}><div className="flabel">Cuotas</div><select className="finput" value={txForm.installments} onChange={e=>setTxForm(f=>({...f,installments:e.target.value}))}>{[1,2,3,6,9,12,18,24].map(n=><option key={n} value={n}>{n===1?'1 (contado)':n+' cuotas'}</option>)}</select></div>
+            </div>
+            <div className="fgroup" style={{marginTop:10,marginBottom:0}}><div className="flabel">Primera cuota</div><input className="finput" type="month" value={txForm.startMonth} onChange={e=>setTxForm(f=>({...f,startMonth:e.target.value}))}/></div>
+            {txForm.amount&&parseInt(txForm.installments)>1&&<div style={{display:'flex',justifyContent:'space-between',fontSize:13,color:'#aaa',marginTop:8}}><span>Cuota mensual:</span><span style={{color:'#7b87f5',fontWeight:600}}>{fmt(Math.round(parseFloat(txForm.amount)/parseInt(txForm.installments)))}</span></div>}
+          </div>}
+          <div className="fgroup"><div className="flabel">Fecha</div><input className="finput" type="date" value={txForm.date} onChange={e=>setTxForm(f=>({...f,date:e.target.value}))}/></div>
+          {txForm.paymentMethod!=='fiado'&&<div className="fgroup"><div className="flabel">Categoría</div>
+            <div className="cat-grid">{categories[txForm.type].map(cat=>(
+              <button key={cat.id} className={'cbt'+(txForm.category===cat.id?' sel':'')} onClick={()=>setTxForm(f=>({...f,category:cat.id}))}>
+                <div className="cbt-ic">{cat.icon}</div><div className="cbt-nm">{cat.label}</div>
+              </button>
+            ))}</div>
+          </div>}
+          <button className="btn-sub" onClick={handleTxSubmit}>Agregar</button>
+          <button className="btn-can" onClick={()=>{setShowTxForm(false);setTxForm(emptyTx());}}>Cancelar</button>
+        </div>
+      </div>}
+
+      {showFixedForm&&<div className="overlay" onClick={e=>e.target===e.currentTarget&&(setShowFixedForm(false),setFixedForm(emptyFixed()),setEditFixedId(null))}>
+        <div className="modal">
+          <div className="modal-title">{editFixedId?'Editar gasto fijo':'Nuevo gasto fijo'}</div>
+          <div className="fgroup"><div className="flabel">Nombre</div><input className="finput" placeholder="Ej: Alquiler, Luz…" value={fixedForm.name} onChange={e=>setFixedForm(f=>({...f,name:e.target.value}))}/></div>
+          <div className="fgroup"><div className="flabel">Ícono</div><div className="icon-grid">{FIXED_ICONS.map(ic=><button key={ic} className={'icbtn'+(fixedForm.icon===ic?' sel':'')} onClick={()=>setFixedForm(f=>({...f,icon:ic}))}>{ic}</button>)}</div></div>
+          <div className="row2">
+            <div className="fgroup"><div className="flabel">Monto ($)</div><input className="finput" type="number" placeholder="0" value={fixedForm.amount} onChange={e=>setFixedForm(f=>({...f,amount:e.target.value}))}/></div>
+            <div className="fgroup"><div className="flabel">Día de vencimiento</div><input className="finput" type="number" min="1" max="31" placeholder="15" value={fixedForm.dueDay} onChange={e=>setFixedForm(f=>({...f,dueDay:e.target.value}))}/></div>
+          </div>
+          <button className="btn-sub" onClick={handleFixedSubmit}>{editFixedId?'Guardar':'Agregar'}</button>
+          <button className="btn-can" onClick={()=>{setShowFixedForm(false);setFixedForm(emptyFixed());setEditFixedId(null);}}>Cancelar</button>
+        </div>
+      </div>}
+
+      {showLoanForm&&<div className="overlay" onClick={e=>e.target===e.currentTarget&&(setShowLoanForm(false),setLoanForm(emptyLoan()),setEditLoanId(null))}>
+        <div className="modal">
+          <div className="modal-title">{editLoanId?'Editar préstamo':'Nuevo préstamo'}</div>
+          <div className="fgroup"><div className="flabel">Nombre</div><input className="finput" placeholder="Ej: Préstamo banco…" value={loanForm.name} onChange={e=>setLoanForm(f=>({...f,name:e.target.value}))}/></div>
+          <div className="fgroup"><div className="flabel">Ícono</div><div className="icon-grid">{LOAN_ICONS.map(ic=><button key={ic} className={'icbtn'+(loanForm.icon===ic?' sel':'')} onClick={()=>setLoanForm(f=>({...f,icon:ic}))}>{ic}</button>)}</div></div>
+          <div className="row2">
+            <div className="fgroup"><div className="flabel">Monto total ($)</div><input className="finput" type="number" placeholder="0" value={loanForm.totalAmount} onChange={e=>setLoanForm(f=>({...f,totalAmount:e.target.value}))}/></div>
+            <div className="fgroup"><div className="flabel">Cuota mensual ($)</div><input className="finput" type="number" placeholder="0" value={loanForm.monthlyPayment} onChange={e=>setLoanForm(f=>({...f,monthlyPayment:e.target.value}))}/></div>
+          </div>
+          <div className="row2">
+            <div className="fgroup"><div className="flabel">Total cuotas</div><input className="finput" type="number" placeholder="24" value={loanForm.totalInstallments} onChange={e=>setLoanForm(f=>({...f,totalInstallments:e.target.value}))}/></div>
+            <div className="fgroup"><div className="flabel">Cuotas pagadas</div><input className="finput" type="number" placeholder="0" value={loanForm.paidInstallments} onChange={e=>setLoanForm(f=>({...f,paidInstallments:e.target.value}))}/></div>
+          </div>
+          <div className="row2">
+            <div className="fgroup"><div className="flabel">Día de vencimiento</div><input className="finput" type="number" min="1" max="31" placeholder="10" value={loanForm.dueDay} onChange={e=>setLoanForm(f=>({...f,dueDay:e.target.value}))}/></div>
+            <div className="fgroup"><div className="flabel">Mes de inicio</div><input className="finput" type="month" value={loanForm.startMonth} onChange={e=>setLoanForm(f=>({...f,startMonth:e.target.value}))}/></div>
+          </div>
+          {loanForm.monthlyPayment&&loanForm.totalInstallments&&<div style={{background:'#1a0a1f',border:'1px solid #3a1050',borderRadius:10,padding:'10px 14px',marginBottom:14}}>
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'#aaa'}}><span>Cuotas restantes:</span><span style={{color:'#c97bf5',fontWeight:700}}>{parseInt(loanForm.totalInstallments||0)-parseInt(loanForm.paidInstallments||0)}</span></div>
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'#aaa',marginTop:4}}><span>Saldo pendiente:</span><span style={{color:'#c97bf5',fontWeight:700}}>{fmt((parseInt(loanForm.totalInstallments||0)-parseInt(loanForm.paidInstallments||0))*parseFloat(loanForm.monthlyPayment||0))}</span></div>
+          </div>}
+          <button className="btn-sub" onClick={handleLoanSubmit}>{editLoanId?'Guardar':'Agregar préstamo'}</button>
+          <button className="btn-can" onClick={()=>{setShowLoanForm(false);setLoanForm(emptyLoan());setEditLoanId(null);}}>Cancelar</button>
+        </div>
+      </div>}
+
+      {showStoreModal&&<div className="overlay" onClick={e=>e.target===e.currentTarget&&setShowStoreModal(false)}>
+        <div className="modal">
+          <div className="modal-title">Nuevo almacén</div>
+          <div className="fgroup"><div className="flabel">Nombre</div><input className="finput" placeholder="Ej: Almacén Don Pedro" value={newStoreName} onChange={e=>setNewStoreName(e.target.value)}/></div>
+          <div className="fgroup"><div className="flabel">Color</div><div className="color-row">{STORE_COLORS.map(c=><div key={c} className={'color-dot'+(newStoreColor===c?' sel':'')} style={{background:c}} onClick={()=>setNewStoreColor(c)}/>)}</div></div>
+          <button className="btn-sub" onClick={()=>{if(!newStoreName.trim())return;setStores(p=>[...p,{id:'s'+Date.now(),name:newStoreName.trim(),color:newStoreColor}]);setNewStoreName('');setShowStoreModal(false);}}>Guardar almacén</button>
+          <button className="btn-can" onClick={()=>setShowStoreModal(false)}>Cancelar</button>
+        </div>
+      </div>}
+
+      {showAccForm&&<div className="overlay" onClick={e=>e.target===e.currentTarget&&(setShowAccForm(false),setEditAccId(null))}>
+        <div className="modal">
+          <div className="modal-title">{editAccId?'Editar cuenta':'Nueva cuenta'}</div>
+          <div className="fgroup"><div className="flabel">Nombre</div><input className="finput" placeholder="Ej: Banco Galicia, Mercado Pago…" value={accForm.name} onChange={e=>setAccForm(f=>({...f,name:e.target.value}))}/></div>
+          <div className="fgroup">
+            <div className="flabel">Tipo</div>
+            <div style={{display:'flex',gap:6}}>
+              {[['bank','🏦 Banco'],['wallet','📱 Billetera'],['cash','💰 Efectivo']].map(([t,l])=>(
+                <button key={t} onClick={()=>setAccForm(f=>({...f,type:t}))}
+                  style={{flex:1,padding:'9px 4px',border:'2px solid '+(accForm.type===t?'#c9a84c':'#222'),borderRadius:10,background:accForm.type===t?'#1c180a':'#0c0c0f',color:accForm.type===t?'#c9a84c':'#555',fontSize:12,fontWeight:500,cursor:'pointer'}}>
+                  {l}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="fgroup"><div className="flabel">Ícono</div>
+            <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+              {ACC_ICONS.map(ic=><button key={ic} className={'icbtn'+(accForm.icon===ic?' sel':'')} onClick={()=>setAccForm(f=>({...f,icon:ic}))}>{ic}</button>)}
+            </div>
+          </div>
+          <div className="fgroup"><div className="flabel">Color</div>
+            <div className="color-row">{ACC_COLORS.map(col=><div key={col} className={'color-dot'+(accForm.color===col?' sel':'')} style={{background:col}} onClick={()=>setAccForm(f=>({...f,color:col}))}/>)}</div>
+          </div>
+          <div className="fgroup"><div className="flabel">Saldo inicial ($)</div><input className="finput" type="number" placeholder="0" value={accForm.balance} onChange={e=>setAccForm(f=>({...f,balance:e.target.value}))}/></div>
+          <button className="btn-sub" onClick={handleAccSubmit}>{editAccId?'Guardar cambios':'Agregar cuenta'}</button>
+          <button className="btn-can" onClick={()=>{setShowAccForm(false);setEditAccId(null);}}>Cancelar</button>
+        </div>
+      </div>}
+
+      {showCatForm&&<div className="overlay" onClick={e=>e.target===e.currentTarget&&(setShowCatForm(false),setCatForm({label:'',icon:'🛒'}),setEditCatId(null))}>
+        <div className="modal">
+          <div className="modal-title">{editCatId?'Editar categoría':'Nueva categoría'}</div>
+          <div className="fgroup"><div className="flabel">Nombre</div><input className="finput" placeholder="Ej: Mascota, Gimnasio…" value={catForm.label} onChange={e=>setCatForm(f=>({...f,label:e.target.value}))}/></div>
+          <div className="fgroup"><div className="flabel">Ícono</div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:6,marginTop:4}}>
+              {EMOJI_OPTIONS.map(em=>(
+                <button key={em} onClick={()=>setCatForm(f=>({...f,icon:em}))}
+                  style={{width:36,height:36,borderRadius:9,border:'2px solid '+(catForm.icon===em?'#c9a84c':'#222'),background:catForm.icon===em?'#1c180a':'#0c0c0f',fontSize:18,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  {em}
+                </button>
+              ))}
+            </div>
+          </div>
+          <button className="btn-sub" onClick={handleCatSubmit}>{editCatId?'Guardar cambios':'Agregar'}</button>
+          <button className="btn-can" onClick={()=>{setShowCatForm(false);setCatForm({label:'',icon:'🛒'});setEditCatId(null);}}>Cancelar</button>
+        </div>
+      </div>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('app')).render(React.createElement(App));
+</script>
+</body>
+</html>
